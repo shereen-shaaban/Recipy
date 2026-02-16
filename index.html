@@ -1,11 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Recipe Sifter – updated sidebar</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
-    
+
+    <!-- HEADER (unchanged) -->
+    <div class="top-section">
+        <h1>Recipe Sifter</h1>
+        <p>By ingredients, cooking time, nutrition facts, collections</p>
+
+        <div class="filters">
+            <!-- Search -->
+            <div class="filter-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search recipe by name...">
+            </div>
+
+            <!-- Time Dropdown -->
+            <div class="dropdown">
+                <div class="filter-box">By Time ⬇</div>
+                <div class="dropdown-content">
+                    <div onclick="filterByTime(5)">5 Minutes</div>
+                    <div onclick="filterByTime(10)">10 Minutes</div>
+                    <div onclick="filterByTime(20)">20 Minutes</div>
+                    <div onclick="filterByTime(30)">30 Minutes</div>
+                </div>
+            </div>
+
+            <!-- Recipes Dropdown -->
+            <div class="dropdown">
+                <div class="filter-box">Recipes ⬇</div>
+                <div class="dropdown-content">
+                    <div onclick="filterByCategory('Beef')">Family</div>
+                    <div onclick="filterByCategory('Chicken')">Fast Food</div>
+                    <div onclick="filterByCategory('Breakfast')">Breakfast</div>
+                    <div onclick="filterByCategory('Dessert')">Dinner</div>
+                </div>
+            </div>
+
+            <!-- Collections Dropdown -->
+            <div class="dropdown">
+                <div class="filter-box">Collections ⬇</div>
+                <div class="dropdown-content">
+                    <div onclick="filterByCategory('Seafood')">Main Dish</div>
+                    <div onclick="filterByCategory('Starter')">Appetizers</div>
+                    <div onclick="filterByCategory('Vegetarian')">Salads</div>
+                    <div onclick="filterByCategory('Dessert')">Dessert</div>
+                    <div onclick="filterByCategory('Miscellaneous')">Drinks</div>
+                </div>
+            </div>
+            <!-- Nutrition Dropdown -->
+            <div class="dropdown">
+                <div class="filter-box">Nutrition ⬇</div>
+                <div class="dropdown-content">
+                    <div onclick="filterByNutrition('Healthy')">Healthy</div>
+                    <div onclick="filterByNutrition('Fatty')">Fatty</div>
+                    <div onclick="filterByNutrition('Low-Calorie')">Low Calorie</div>
+                    <div onclick="filterByNutrition('High-Protein')">High Protein</div>
+                </div>
+            </div>
+            <!-- Areas Dropdown -->
+            <div class="dropdown">
+                <div class="filter-box">Areas ⬇</div>
+                <div class="dropdown-content" id="areasDropdown"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN LAYOUT with updated sidebar -->
+    <div class="main-layout">
+        <!-- INGREDIENTS SIDEBAR - UPDATED LIKE YOUR IMAGE -->
+        <aside class="ingredients-sidebar">
+            <h2><i class="fa-regular fa-clipboard"></i> Ingredients</h2>
+
+            <!-- Clear selected button -->
+            <button class="clear-btn" id="clearIngredientsBtn">
+                <i class="fa-solid fa-xmark"></i> Clear selected ingredients
+            </button>
+
+            <div id="ingredientsTypes"></div>
+        </aside>
+
+        <!-- RECIPES CONTAINER -->
+        <div id="recipes" class="recipes-container"></div>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalDetails"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
+
 </html>

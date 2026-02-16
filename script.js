@@ -315,11 +315,25 @@ const recipesContainer = document.getElementById("recipes");
 const loader = document.getElementById("loader");
 const searchInput = document.getElementById("searchInput");
 
-let favorites = JSON.parse(localStorage.getItem("favorites")) || {};
-let ratings = JSON.parse(localStorage.getItem("ratings")) || {};
-
+let favorites = {};
+let ratings = {};
 let selectedIngredients = [];
 let lastLoadedMeals = [];
+
+// ================== USER DATA ==================
+function loadUserData() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.email) {
+        favorites = JSON.parse(localStorage.getItem(`favorites_${user.email}`)) || {};
+        ratings = JSON.parse(localStorage.getItem(`ratings_${user.email}`)) || {};
+    } else {
+        favorites = {};
+        ratings = {};
+    }
+}
+
+// Call at start
+loadUserData();
 
 // ================== SEARCH ==================
 searchInput.addEventListener("keyup", () => {
@@ -364,7 +378,7 @@ async function filterByCategory(category) {
     filterByIngredientsMulti(selectedIngredients);
 }
 
-// ================== MULTI-INGREDIENT FILTER (OR) ==================
+// ================== MULTI-INGREDIENT FILTER ==================
 async function filterByIngredientsMulti(ingredients) {
     if (!ingredients || ingredients.length === 0) {
         displayRecipes(lastLoadedMeals);
@@ -382,7 +396,6 @@ async function filterByIngredientsMulti(ingredients) {
         } catch {}
     }
 
-    // IDs الفريدة لكل الوصفات
     const uniqueIDs = [...new Set(allMeals.map(m => m.idMeal))];
 
     const fullMeals = await Promise.all(
@@ -504,7 +517,12 @@ function closeModal() { document.getElementById("modal").style.display = "none";
 function toggleFavorite(id, name, img) {
     if (favorites[id]) delete favorites[id];
     else favorites[id] = { name, img };
-    localStorage.setItem("favorites", JSON.stringify(favorites));
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.email) {
+        localStorage.setItem(`favorites_${user.email}`, JSON.stringify(favorites));
+    }
+
     filterByIngredientsMulti(selectedIngredients);
 }
 
@@ -520,7 +538,12 @@ function createStars(id, currentRate) {
 
 function rateRecipe(id, value) {
     ratings[id] = value;
-    localStorage.setItem("ratings", JSON.stringify(ratings));
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.email) {
+        localStorage.setItem(`ratings_${user.email}`, JSON.stringify(ratings));
+    }
+
     filterByIngredientsMulti(selectedIngredients);
 }
 
@@ -595,13 +618,12 @@ document.addEventListener('DOMContentLoaded', () => {
         updateIngredientCounters();
     });
 });
+
 // ================== NUTRITION FILTER ==================
 function filterByNutrition(nutrition) {
     showLoader();
-
     try {
         const filteredMeals = lastLoadedMeals.filter(meal => {
-            // Collect all ingredients of the meal
             const ingredients = [];
             for (let i = 1; i <= 20; i++) {
                 if (meal[`strIngredient${i}`]) {
@@ -609,20 +631,10 @@ function filterByNutrition(nutrition) {
                 }
             }
 
-            // Check nutrition rules based on ingredients
-            if (nutrition === "Healthy") {
-                // mostly vegetables/fruits, not fatty
-                return ingredients.some(i => /(onion|garlic|tomato|carrot|potato|pepper|cucumber|spinach|broccoli|lettuce|celery|apple|banana|lemon|orange|mango|berry)/.test(i));
-            }
-            if (nutrition === "Fatty") {
-                return ingredients.some(i => /(cheese|butter|cream|bacon|pork|beef|lamb)/.test(i));
-            }
-            if (nutrition === "Low-Calorie") {
-                return !ingredients.some(i => /(fried|cake|cream|cheese|butter|chocolate)/.test(i));
-            }
-            if (nutrition === "High-Protein") {
-                return ingredients.some(i => /(chicken|beef|fish|egg|tuna|salmon|shrimp|pork|lamb)/.test(i));
-            }
+            if (nutrition === "Healthy") return ingredients.some(i => /(onion|garlic|tomato|carrot|potato|pepper|cucumber|spinach|broccoli|lettuce|celery|apple|banana|lemon|orange|mango|berry)/.test(i));
+            if (nutrition === "Fatty") return ingredients.some(i => /(cheese|butter|cream|bacon|pork|beef|lamb)/.test(i));
+            if (nutrition === "Low-Calorie") return !ingredients.some(i => /(fried|cake|cream|cheese|butter|chocolate)/.test(i));
+            if (nutrition === "High-Protein") return ingredients.some(i => /(chicken|beef|fish|egg|tuna|salmon|shrimp|pork|lamb)/.test(i));
 
             return true;
         });
@@ -631,10 +643,8 @@ function filterByNutrition(nutrition) {
     } catch (e) {
         console.error(e);
     }
-
     hideLoader();
 }
-
 
 // ================== AREAS FILTER ==================
 async function loadAreas() {
@@ -677,6 +687,62 @@ async function filterByArea(area) {
 // Load Areas on page load
 document.addEventListener('DOMContentLoaded', loadAreas);
 
+// ================== DARK MODE ==================
+const darkModeToggle = document.getElementById('darkModeToggle');
+if (localStorage.getItem('darkMode') === 'enabled') {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+}
+
+darkModeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    if (document.body.classList.contains('dark-mode')) {
+        darkModeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        darkModeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+        localStorage.setItem('darkMode', 'disabled');
+    }
+});
+
+// ================== AUTH BUTTONS ==================
+function updateAuthButtons() {
+    const authDiv = document.getElementById("authButtons");
+    const user = JSON.parse(localStorage.getItem("user"));
+    authDiv.innerHTML = "";
+
+    if (user && user.username) {
+        const logoutBtn = document.createElement("button");
+        logoutBtn.innerText = `Logout (${user.username})`;
+        logoutBtn.onclick = logout;
+        authDiv.appendChild(logoutBtn);
+    } else {
+        const loginBtn = document.createElement("button");
+        loginBtn.innerText = "Login";
+        loginBtn.onclick = () => window.location.href = "login.html";
+
+        const signupBtn = document.createElement("button");
+        signupBtn.innerText = "Sign Up";
+        signupBtn.onclick = () => window.location.href = "signup.html";
+
+        authDiv.appendChild(loginBtn);
+        authDiv.appendChild(signupBtn);
+    }
+}
+
+function logout() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.email) {
+        localStorage.setItem(`favorites_${user.email}`, JSON.stringify(favorites));
+        localStorage.setItem(`ratings_${user.email}`, JSON.stringify(ratings));
+    }
+
+    localStorage.removeItem("user");
+    loadUserData();
+    updateAuthButtons();
+    filterByIngredientsMulti(selectedIngredients);
+}
+
 // ================== GLOBAL FUNCTIONS ==================
 window.filterByIngredient = filterByIngredient;
 window.filterByCategory = filterByCategory;
@@ -691,24 +757,4 @@ window.searchRecipe = searchRecipe;
 // ================== INITIALIZE ==================
 loadIngredientsSidebar();
 searchRecipe("chicken");
-// ================== DARK MODE TOGGLE ==================
-const darkModeToggle = document.getElementById('darkModeToggle');
-
-// Load saved mode from localStorage
-if (localStorage.getItem('darkMode') === 'enabled') {
-    document.body.classList.add('dark-mode');
-    darkModeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
-}
-
-darkModeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-
-    // Switch icon
-    if (document.body.classList.contains('dark-mode')) {
-        darkModeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
-        localStorage.setItem('darkMode', 'enabled');
-    } else {
-        darkModeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
-        localStorage.setItem('darkMode', 'disabled');
-    }
-});
+updateAuthButtons();

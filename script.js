@@ -691,3 +691,24 @@ window.searchRecipe = searchRecipe;
 // ================== INITIALIZE ==================
 loadIngredientsSidebar();
 searchRecipe("chicken");
+// ================== DARK MODE TOGGLE ==================
+const darkModeToggle = document.getElementById('darkModeToggle');
+
+// Load saved mode from localStorage
+if (localStorage.getItem('darkMode') === 'enabled') {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+}
+
+darkModeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+
+    // Switch icon
+    if (document.body.classList.contains('dark-mode')) {
+        darkModeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        darkModeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+        localStorage.setItem('darkMode', 'disabled');
+    }
+});
